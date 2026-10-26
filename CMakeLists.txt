@@ -25,7 +25,9 @@ add_executable(MintOS main.cpp
         MintLibSystem.h
         MintLibSystem.cpp
         MintLibFile.h
-        MintLibFile.cpp)
+        MintLibFile.cpp
+        app.cpp
+        app.h)
 
 target_link_libraries(MintOS PRIVATE SFML::Graphics)
 

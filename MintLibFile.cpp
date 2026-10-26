@@ -1,4 +1,3 @@
-
 #include "MintLibFile.h"
 
 #include <algorithm>

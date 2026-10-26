@@ -10,6 +10,8 @@
 #include <sstream>
 #include <algorithm>
 
+#include "app.h"
+
 int main() {
     bool isclock = false;
     bool iscmds = false;
@@ -57,10 +59,17 @@ int main() {
     ftext.setPosition({80, 1028});
     ftext.setString(">");
 
+    //default
+    sf::Text dfltext(font);
+    dfltext.setCharacterSize(32);
+    dfltext.setPosition({10, 10});
+    dfltext.setString("Commands: \n    quit\n    clock\n    exit\n    f [file]");
+
     //clock
-    sf::Text clocktext(font);
-    clocktext.setCharacterSize(32);
-    clocktext.setPosition({10, 10});
+    App clock(&window, &dfltext);
+    clock.setCharacterSize(32);
+    clock.setFont(&font);
+    clock.setPosition({10, 10});
 
     //cmds
     sf::Text cmdstext(font);
@@ -73,12 +82,6 @@ int main() {
     ctrltext.setCharacterSize(32);
     ctrltext.setPosition({10, 10});
     ctrltext.setString("Name: " + Mint::computerName() + "\nTotal Ram: " + std::to_string(Mint::totalRAM()));
-
-    //default
-    sf::Text dfltext(font);
-    dfltext.setCharacterSize(32);
-    dfltext.setPosition({10, 10});
-    dfltext.setString("Commands: \n    quit\n    clock\n    exit\n    f [file]");
 
     while (window.isOpen()) {
         while (const auto event = window.pollEvent()) {
@@ -201,8 +204,8 @@ int main() {
             window.draw(ftext);
 
         if (isclock) {
-            window.draw(clocktext);
-            clocktext.setString("Unix Time: " + std::to_string(Mint::unixLocalTimeMs()) + "\nCurrent Date: " + Mint::localDateTimeMs());
+            clock.draw();
+            clock.setText("Unix Time: " + std::to_string(Mint::unixLocalTimeMs()) + "\nCurrent Date: " + Mint::localDateTimeMs());
         }
 
         if (iscmds) {

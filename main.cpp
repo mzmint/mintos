@@ -75,13 +75,13 @@ int main() {
     sf::Text cmdstext(font);
     cmdstext.setCharacterSize(32);
     cmdstext.setPosition({10, 10});
-    cmdstext.setString("Commands: \n    quit\n    clock\n    exit");
+    cmdstext.setString("Commands: \n    quit\n    clock\n    exit\n    ctrl");
 
     //ctrl
     sf::Text ctrltext(font);
     ctrltext.setCharacterSize(32);
     ctrltext.setPosition({10, 10});
-    ctrltext.setString("Name: " + Mint::computerName() + "\nTotal Ram: " + std::to_string(Mint::totalRAM()));
+    ctrltext.setString("Name: " + Mint::computerName()  + "\nUsername: " + Mint::username() + "\nTotal Ram: " + std::to_string(Mint::totalRAM()));
 
     while (window.isOpen()) {
         while (const auto event = window.pollEvent()) {

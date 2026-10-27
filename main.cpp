@@ -13,9 +13,6 @@
 #include "app.h"
 
 int main() {
-    bool isclock = false;
-    bool iscmds = false;
-    bool isctrl = false;
     bool isf = false;
 
     int scrollLine = 0;
@@ -60,28 +57,16 @@ int main() {
     ftext.setString(">");
 
     //default
-    sf::Text dfltext(font);
-    dfltext.setCharacterSize(32);
-    dfltext.setPosition({10, 10});
-    dfltext.setString("Commands: \n    quit\n    clock\n    exit\n    f [file]");
+    sf::Text apptext(font);
+    apptext.setCharacterSize(32);
+    apptext.setPosition({10, 10});
 
-    //clock
-    App clock(&window, &dfltext);
-    clock.setCharacterSize(32);
-    clock.setFont(&font);
-    clock.setPosition({10, 10});
-
-    //cmds
-    sf::Text cmdstext(font);
-    cmdstext.setCharacterSize(32);
-    cmdstext.setPosition({10, 10});
-    cmdstext.setString("Commands: \n    quit\n    clock\n    exit\n    ctrl");
-
-    //ctrl
-    sf::Text ctrltext(font);
-    ctrltext.setCharacterSize(32);
-    ctrltext.setPosition({10, 10});
-    ctrltext.setString("Name: " + Mint::computerName()  + "\nUsername: " + Mint::username() + "\nTotal Ram: " + std::to_string(Mint::totalRAM()));
+    //apps
+    App clock(&window, &apptext);
+    App cmds(&window, &apptext);
+    App ctrl(&window, &apptext);
+    cmds.setText("Commands: \n    quit\n    clock\n    exit\n    ctrl\n    f [file]");
+    ctrl.setText("Name: " + Mint::computerName()  + "\nUsername: " + Mint::username() + "\nTotal Ram: " + std::to_string(Mint::totalRAM()));
 
     while (window.isOpen()) {
         while (const auto event = window.pollEvent()) {
@@ -127,32 +112,35 @@ int main() {
                         cmd = text;
                         text.clear();
                         if (cmd == "clock") {
-                            iscmds = false;
-                            isctrl = false;
+                            if (clock.isOpen()) clock.close();
+                            else clock.open();
+                            cmds.close();
+                            ctrl.close();
                             isf = false;
-                            isclock = !isclock;
                         } else if (cmd == "quit") {
                             window.close();
                         } else if (cmd == "exit") {
-                            isclock = false;
-                            iscmds = false;
-                            isctrl = false;
+                            clock.close();
+                            cmds.close();
+                            ctrl.close();
                             isf = false;
                         } else if (cmd == "cmds") {
-                            isclock = false;
-                            isctrl = false;
-                            iscmds = !iscmds;
+                            if (cmds.isOpen()) cmds.close();
+                            else cmds.open();
+                            clock.close();
+                            ctrl.close();
                             isf = false;
                         } else if (cmd == "ctrl") {
-                            isclock = false;
-                            isctrl = !isctrl;
-                            iscmds = false;
+                            if (ctrl.isOpen()) ctrl.close();
+                            else cmds.open();
+                            clock.close();
+                            ctrl.close();
                             isf = false;
                         } else if (cmd.substr(0, 1) == "f" && cmd.substr(1, 1) == " ") {
                             std::string temp;
-                            isclock = false;
-                            isctrl = false;
-                            iscmds = false;
+                            clock.close();
+                            ctrl.close();
+                            cmds.close();
                             if (Mint::File::tryReadText(cmd.substr(2), temp)) {
                                 std::string contents = Mint::File::readText(cmd.substr(2));
 
@@ -203,17 +191,17 @@ int main() {
         if (text != "" || fvisible)
             window.draw(ftext);
 
-        if (isclock) {
+        if (clock.isOpen()) {
             clock.draw();
             clock.setText("Unix Time: " + std::to_string(Mint::unixLocalTimeMs()) + "\nCurrent Date: " + Mint::localDateTimeMs());
         }
 
-        if (iscmds) {
-            window.draw(cmdstext);
+        if (cmds.isOpen()) {
+            cmds.draw();
         }
 
-        if (isctrl) {
-            window.draw(ctrltext);
+        if (ctrl.isOpen()) {
+            ctrl.draw();
         }
 
         if (isf) {
@@ -232,10 +220,10 @@ int main() {
                 }
             }
 
-            dfltext.setString(visibleText);
-            dfltext.setPosition({10.f, 10.f});
+            apptext.setString(visibleText);
+            apptext.setPosition({10.f, 10.f});
 
-            window.draw(dfltext);
+            window.draw(apptext);
         }
 
         window.display();

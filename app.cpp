@@ -20,6 +20,18 @@ void App::setFont(sf::Font* font) {
     text->setFont(*font);
 }
 
+bool App::isOpen() {
+    return ison;
+}
+
+void App::close() {
+    ison = false;
+}
+
+void App::open() {
+    ison = true;
+}
+
 void App::draw() {
     window->draw(*text);
 }

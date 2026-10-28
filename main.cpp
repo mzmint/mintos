@@ -13,15 +13,6 @@
 #include "app.h"
 
 int main() {
-    bool isf = false;
-
-    int scrollLine = 0;
-    const float lineHeight = 40.f;
-    const float fileTop = 10.f;
-    const float fileBottom = 1010.f;
-    std::vector<std::string> fileLines;
-    const int visibleLines = 35;
-
     sf::Clock flashclock;
     bool fvisible = true;
     const sf::Time interval = sf::milliseconds(1000);
@@ -65,6 +56,7 @@ int main() {
     App clock(&window, &apptext);
     App cmds(&window, &apptext);
     App ctrl(&window, &apptext);
+    App f(&window, &apptext);
     cmds.setText("Commands: \n    quit\n    clock\n    exit\n    ctrl\n    f [file]");
     ctrl.setText("Name: " + Mint::computerName()  + "\nUsername: " + Mint::username() + "\nTotal Ram: " + std::to_string(Mint::totalRAM()));
 
@@ -89,20 +81,6 @@ int main() {
                         text.pop_back();
                     }
                 }
-                if (isf) {
-                    if (key->scancode == sf::Keyboard::Scancode::Up) {
-                        if (scrollLine > 0) {
-                            scrollLine--;
-                        }
-                    }
-
-                    if (key->scancode == sf::Keyboard::Scancode::Down) {
-                        int maxScroll = std::max(0, static_cast<int>(fileLines.size()) - visibleLines);
-                        if (scrollLine < maxScroll) {
-                            scrollLine++;
-                        }
-                    }
-                }
             }
 
             if (const auto* key =
@@ -116,44 +94,36 @@ int main() {
                             else clock.open();
                             cmds.close();
                             ctrl.close();
-                            isf = false;
+                            f.close();
                         } else if (cmd == "quit") {
                             window.close();
                         } else if (cmd == "exit") {
                             clock.close();
                             cmds.close();
                             ctrl.close();
-                            isf = false;
+                            f.close();
                         } else if (cmd == "cmds") {
                             if (cmds.isOpen()) cmds.close();
                             else cmds.open();
                             clock.close();
                             ctrl.close();
-                            isf = false;
+                            f.close();
                         } else if (cmd == "ctrl") {
                             if (ctrl.isOpen()) ctrl.close();
-                            else cmds.open();
+                            else ctrl.open();
                             clock.close();
                             ctrl.close();
-                            isf = false;
-                        } else if (cmd.substr(0, 1) == "f" && cmd.substr(1, 1) == " ") {
-                            std::string temp;
-                            clock.close();
-                            ctrl.close();
-                            cmds.close();
-                            if (Mint::File::tryReadText(cmd.substr(2), temp)) {
-                                std::string contents = Mint::File::readText(cmd.substr(2));
+                            f.close();
+                        } else if (cmd.rfind("f ", 0) == 0) {
+                            std::string contents;
 
-                                fileLines.clear();
-                                std::istringstream stream(contents);
-                                std::string line;
+                            if (Mint::File::tryReadText(cmd.substr(2), contents)) {
+                                clock.close();
+                                cmds.close();
+                                ctrl.close();
 
-                                while (std::getline(stream, line)) {
-                                    fileLines.push_back(line);
-                                }
-
-                                scrollLine = 0;
-                                isf = true;
+                                f.setText(contents);
+                                f.open();
                             }
                         }
                     }
@@ -170,6 +140,11 @@ int main() {
                     }
                 }
             }
+
+            clock.handleEvent(*event);
+            cmds.handleEvent(*event);
+            ctrl.handleEvent(*event);
+            f.handleEvent(*event);
         }
 
         cmdtext.setString(text);
@@ -204,26 +179,8 @@ int main() {
             ctrl.draw();
         }
 
-        if (isf) {
-            std::string visibleText;
-
-            int endLine = std::min(
-                scrollLine + visibleLines,
-                static_cast<int>(fileLines.size())
-            );
-
-            for (int i = scrollLine; i < endLine; i++) {
-                visibleText += fileLines[i];
-
-                if (i < endLine - 1) {
-                    visibleText += '\n';
-                }
-            }
-
-            apptext.setString(visibleText);
-            apptext.setPosition({10.f, 10.f});
-
-            window.draw(apptext);
+        if (f.isOpen()) {
+            f.draw();
         }
 
         window.display();

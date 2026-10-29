@@ -50,15 +50,17 @@ int main() {
     //default
     sf::Text apptext(font);
     apptext.setCharacterSize(32);
-    apptext.setPosition({10, 10});
+    apptext.setPosition({10, 58});
+
+    sf::Text headtext(font);
+    headtext.setCharacterSize(32);
+    headtext.setPosition({10, 12});
 
     //apps
-    App clock(&window, &apptext);
-    App cmds(&window, &apptext);
-    App ctrl(&window, &apptext);
-    App f(&window, &apptext);
-    cmds.setText("Commands: \n    quit\n    clock\n    exit\n    ctrl\n    f [file]");
-    ctrl.setText("Name: " + Mint::computerName()  + "\nUsername: " + Mint::username() + "\nTotal Ram: " + std::to_string(Mint::totalRAM()));
+    App clock(&window, &apptext, &headtext);
+    App cmds(&window, &apptext, &headtext);
+    App ctrl(&window, &apptext, &headtext);
+    App f(&window, &apptext, &headtext);
 
     while (window.isOpen()) {
         while (const auto event = window.pollEvent()) {
@@ -95,6 +97,7 @@ int main() {
                             cmds.close();
                             ctrl.close();
                             f.close();
+                            clock.setHeader("Clock");
                         } else if (cmd == "quit") {
                             window.close();
                         } else if (cmd == "exit") {
@@ -108,12 +111,15 @@ int main() {
                             clock.close();
                             ctrl.close();
                             f.close();
+                            cmds.setHeader("Commands");
+                            cmds.setText("Commands: \n    quit\n    clock\n    exit\n    ctrl\n    f [file]");
                         } else if (cmd == "ctrl") {
                             if (ctrl.isOpen()) ctrl.close();
                             else ctrl.open();
                             clock.close();
-                            ctrl.close();
                             f.close();
+                            ctrl.setHeader("Control Panel");
+                            ctrl.setText("Name: " + Mint::computerName()  + "\nUsername: " + Mint::username() + "\nTotal Ram: " + std::to_string(Mint::totalRAM()));
                         } else if (cmd.rfind("f ", 0) == 0) {
                             std::string contents;
 

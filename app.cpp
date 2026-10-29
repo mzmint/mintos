@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <sstream>
 
-App::App(sf::RenderWindow* w, sf::Text* t)
-    : window(w), text(t) {
+App::App(sf::RenderWindow* w, sf::Text* t, sf::Text* h)
+    : window(w), text(t), header(h) {
 }
 
 void App::setText(std::string str) {
@@ -31,6 +31,7 @@ void App::setText(std::string str) {
     scrollLine = std::clamp(scrollLine, 0, maxScroll);
 
     updateText();
+    atext = str;
 }
 
 void App::setPosition(sf::Vector2f pos) {
@@ -125,5 +126,19 @@ void App::open() {
 void App::draw() {
     if (ison) {
         window->draw(*text);
+        window->draw(*header);
     }
+}
+
+void App::setHeader(std::string headertext) {
+    header->setString(headertext);
+    htext = headertext;
+}
+
+std::string App::getText() {
+    return atext;
+}
+
+std::string App::getHeader() {
+    return htext;
 }

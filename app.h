@@ -33,6 +33,7 @@ public:
     bool isOpen();
     void close();
     void open();
+    void toggle();
     void draw();
     void setHeader(std::string headertext);
     std::string getText();

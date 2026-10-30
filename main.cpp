@@ -6,9 +6,6 @@
 #include "MintLibClock.h"
 #include "MintLibSystem.h"
 #include "MintLibFile.h"
-#include <vector>
-#include <sstream>
-#include <algorithm>
 
 #include "app.h"
 
@@ -25,6 +22,7 @@ int main() {
 
     std::string text;
     std::string cmd;
+    std::string path = "root/";
 
     sf::Font font;
 
@@ -33,18 +31,18 @@ int main() {
         return 1;
     }
 
-    sf::Text cmdtext(font);
-    cmdtext.setCharacterSize(32);
-    cmdtext.setPosition({100, 1028});
-
     sf::Text deftext(font);
     deftext.setCharacterSize(32);
     deftext.setPosition({10, 1028});
-    deftext.setString("mint:");
+    deftext.setString("mint@" + path + ":");
+
+    sf::Text cmdtext(font);
+    cmdtext.setCharacterSize(32);
+    cmdtext.setPosition({deftext.getLocalBounds().size.x + 32, 1028});
 
     sf::Text ftext(font);
     ftext.setCharacterSize(32);
-    ftext.setPosition({80, 1028});
+    ftext.setPosition({16 + deftext.getLocalBounds().size.x, 1028});
     ftext.setString(">");
 
     //default
@@ -61,6 +59,8 @@ int main() {
     App cmds(&window, &apptext, &headtext);
     App ctrl(&window, &apptext, &headtext);
     App f(&window, &apptext, &headtext);
+
+    Mint::File::createDirectory("root");
 
     while (window.isOpen()) {
         while (const auto event = window.pollEvent()) {
@@ -92,8 +92,7 @@ int main() {
                         cmd = text;
                         text.clear();
                         if (cmd == "clock") {
-                            if (clock.isOpen()) clock.close();
-                            else clock.open();
+                            clock.toggle();
                             cmds.close();
                             ctrl.close();
                             f.close();
@@ -106,16 +105,14 @@ int main() {
                             ctrl.close();
                             f.close();
                         } else if (cmd == "cmds") {
-                            if (cmds.isOpen()) cmds.close();
-                            else cmds.open();
+                            cmds.toggle();
                             clock.close();
                             ctrl.close();
                             f.close();
                             cmds.setHeader("Commands");
                             cmds.setText("Commands: \n    quit\n    clock\n    exit\n    ctrl\n    f [file]");
                         } else if (cmd == "ctrl") {
-                            if (ctrl.isOpen()) ctrl.close();
-                            else ctrl.open();
+                            ctrl.toggle();
                             clock.close();
                             f.close();
                             ctrl.setHeader("Control Panel");
@@ -123,13 +120,70 @@ int main() {
                         } else if (cmd.rfind("f ", 0) == 0) {
                             std::string contents;
 
-                            if (Mint::File::tryReadText(cmd.substr(2), contents)) {
+                            if (Mint::File::tryReadText(path + cmd.substr(2), contents)) {
                                 clock.close();
                                 cmds.close();
                                 ctrl.close();
 
                                 f.setText(contents);
+                                f.setHeader(cmd.substr(2));
                                 f.open();
+                            }
+                        } else if (cmd.rfind("nf ", 0) == 0) {
+                            clock.close();
+                            cmds.close();
+                            ctrl.close();
+                            f.close();
+                            Mint::File::createFile(path + cmd.substr(3));
+                        } else if (cmd.rfind("d ", 0) == 0) {
+                            std::string dir = cmd.substr(2);
+                            std::string newPath;
+
+                            while (path.length() > 1 && (path.back() == '/' || path.back() == '\\')) {
+                                path.pop_back();
+                            }
+                            if (dir == "..") {
+                                newPath = Mint::File::parentPath(path);
+                            } else {
+                                while (!dir.empty() && (dir.front() == '/' || dir.front() == '\\')) {
+                                    dir.erase(0, 1);
+                                }
+                                newPath = path + "/" + dir;
+                            }
+                            if (Mint::File::exists(newPath) &&
+                                Mint::File::isDirectory(newPath)) {
+                                clock.close();
+                                cmds.close();
+                                ctrl.close();
+                                f.close();
+                                path = newPath;
+
+                                if (path.back() != '/' && path.back() != '\\') path += "/";
+                                deftext.setString("mint@" + path + ":");
+                                ftext.setPosition({16 + deftext.getLocalBounds().size.x, 1028});
+                                cmdtext.setPosition({deftext.getLocalBounds().size.x + 32, 1028});
+                            }
+                        } else if (cmd.rfind("nd ", 0) == 0) {
+                            std::string dir = cmd.substr(3);
+                            while (path.length() > 1 && (path.back() == '/' || path.back() == '\\')) {
+                                path.pop_back();
+                            }
+                            while (!dir.empty() && (dir.front() == '/' || dir.front() == '\\')) {
+                                dir.erase(0, 1);
+                            }
+                            while (!dir.empty() && (dir.back() == '/' || dir.back() == '\\')) {
+                                dir.pop_back();
+                            }
+
+                            std::string newPath = path + "/" + dir;
+
+                            if (!dir.empty() && !Mint::File::exists(newPath)) {
+                                clock.close();
+                                cmds.close();
+                                ctrl.close();
+                                f.close();
+
+                                Mint::File::createDirectory(newPath);
                             }
                         }
                     }

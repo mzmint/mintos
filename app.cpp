@@ -123,6 +123,10 @@ void App::open() {
     ison = true;
 }
 
+void App::toggle() {
+    ison = !ison;
+}
+
 void App::draw() {
     if (ison) {
         window->draw(*text);

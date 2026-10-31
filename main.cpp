@@ -14,7 +14,6 @@ int main() {
     bool fvisible = true;
     const sf::Time interval = sf::milliseconds(1000);
 
-
     sf::RenderWindow window(
         sf::VideoMode({1920, 1080}),
         "MintOS"
@@ -23,6 +22,8 @@ int main() {
     std::string text;
     std::string cmd;
     std::string path = "root/";
+    long long startuptime = Mint::unixLocalTimeMs();
+    bool isctrlfull = false;
 
     sf::Font font;
 
@@ -83,7 +84,7 @@ int main() {
                         text.pop_back();
                     }
                 }
-            }
+                }
 
             if (const auto* key =
                 event->getIf<sf::Event::KeyPressed>()) {
@@ -92,6 +93,7 @@ int main() {
                         cmd = text;
                         text.clear();
                         if (cmd == "clock") {
+                            isctrlfull = false;
                             clock.toggle();
                             cmds.close();
                             ctrl.close();
@@ -100,11 +102,13 @@ int main() {
                         } else if (cmd == "quit") {
                             window.close();
                         } else if (cmd == "exit") {
+                            isctrlfull = false;
                             clock.close();
                             cmds.close();
                             ctrl.close();
                             f.close();
                         } else if (cmd == "cmds") {
+                            isctrlfull = false;
                             cmds.toggle();
                             clock.close();
                             ctrl.close();
@@ -112,15 +116,16 @@ int main() {
                             cmds.setHeader("Commands");
                             cmds.setText("Commands: \n    quit\n    clock\n    exit\n    ctrl\n    f [file]");
                         } else if (cmd == "ctrl") {
+                            isctrlfull = false;
                             ctrl.toggle();
                             clock.close();
                             f.close();
                             ctrl.setHeader("Control Panel");
-                            ctrl.setText("Name: " + Mint::computerName()  + "\nUsername: " + Mint::username() + "\nTotal Ram: " + std::to_string(Mint::totalRAM()));
                         } else if (cmd.rfind("f ", 0) == 0) {
                             std::string contents;
 
                             if (Mint::File::tryReadText(path + cmd.substr(2), contents)) {
+                                isctrlfull = false;
                                 clock.close();
                                 cmds.close();
                                 ctrl.close();
@@ -162,7 +167,7 @@ int main() {
                                 deftext.setString("mint@" + path + ":");
                                 ftext.setPosition({16 + deftext.getLocalBounds().size.x, 1028});
                                 cmdtext.setPosition({deftext.getLocalBounds().size.x + 32, 1028});
-                            }
+                                }
                         } else if (cmd.rfind("nd ", 0) == 0) {
                             std::string dir = cmd.substr(3);
                             while (path.length() > 1 && (path.back() == '/' || path.back() == '\\')) {
@@ -185,10 +190,23 @@ int main() {
 
                                 Mint::File::createDirectory(newPath);
                             }
+                        } else if (cmd == "ctrl full") {
+                            isctrlfull = !isctrlfull;
+
+                            if (isctrlfull) {
+                                ctrl.open();
+                            } else {
+                                ctrl.close();
+                            }
+                            clock.close();
+                            cmds.close();
+                            f.close();
+
+                            ctrl.setHeader("Control Panel");
                         }
                     }
                 }
-            }
+                }
 
             if (const auto* entered =
                 event->getIf<sf::Event::TextEntered>()) {
@@ -199,7 +217,7 @@ int main() {
                         text += static_cast<char>(c);
                     }
                 }
-            }
+                }
 
             clock.handleEvent(*event);
             cmds.handleEvent(*event);
@@ -236,6 +254,38 @@ int main() {
         }
 
         if (ctrl.isOpen()) {
+            if (isctrlfull) {
+                ctrl.setText("Name: " + Mint::System::computerName()
+                                + "\nUsername: " + Mint::System::username()
+                                + "\nTotal Ram: " + std::to_string(Mint::System::totalRAM())
+                                + "\nAvailable Ram: " + std::to_string(Mint::System::availableRAM())
+                                + "\nRam Usage: " + std::to_string(Mint::System::ramUsagePercent())
+                                + "\nHost Name: " + Mint::System::hostname()
+                                + "\nIP Address: " + Mint::System::localIPAddress()
+                                + "\nTime Since Startup: " + std::to_string(Mint::unixLocalTimeMs() - startuptime)
+                                + "\nCurrent Path: " + path
+                                + "\nCPU Architecture: " + Mint::System::cpuArchitecture()
+                                + "\nCPU Cores: " + std::to_string(Mint::System::cpuCores())
+                                + "\nCPU Name: " + Mint::System::cpuName()
+                                + "\nCPU Threads: " + std::to_string(Mint::System::cpuThreads())
+                                + "\nCPU Usage: " + std::to_string(Mint::System::cpuUsagePercent())
+                                + "\nCPU Vendor: " + Mint::System::cpuVendor()
+                                + "\nScreen Refresh Rate: " + std::to_string(Mint::System::screenRefreshRate())
+                                + "\nScreen Width: " + std::to_string(Mint::System::screenWidth())
+                                + "\nScreen Height: " + std::to_string(Mint::System::screenHeight())
+                                + "\nUser Home Directory: " + Mint::System::userHomeDirectory());
+            } else {
+                ctrl.setText("Name: " + Mint::System::computerName()
+                                + "\nUsername: " + Mint::System::username()
+                                + "\nTotal Ram: " + std::to_string(Mint::System::totalRAM())
+                                + "\nAvailable Ram: " + std::to_string(Mint::System::availableRAM())
+                                + "\nRam Usage: " + std::to_string(Mint::System::ramUsagePercent())
+                                + "\nHost Name: " + Mint::System::hostname()
+                                + "\nIP Address: " + Mint::System::localIPAddress()
+                                + "\nTime Since Startup: " + std::to_string(Mint::unixLocalTimeMs() - startuptime)
+                                + "\nCurrent Path: " + path
+                                + "\nCPU Usage: " + std::to_string(Mint::System::cpuUsagePercent()));
+            }
             ctrl.draw();
         }
 

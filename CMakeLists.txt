@@ -26,9 +26,13 @@ add_executable(MintOS main.cpp
         MintLibFile.h
         MintLibFile.cpp
         app.cpp
-        app.h)
+        app.h
+        )
 
-target_link_libraries(MintOS PRIVATE SFML::Graphics)
+target_link_libraries(MintOS PRIVATE
+        SFML::Graphics
+        advapi32
+        ws2_32)
 
 if(WIN32)
     add_custom_command(TARGET MintOS POST_BUILD
